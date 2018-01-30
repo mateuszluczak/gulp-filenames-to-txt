@@ -1,19 +1,15 @@
 'use strict';
 
-var through = require('through2');
-var gutil = require('gulp-util');
-var path = require('path');
-var slash = require('slash');
+const through = require('through2');
+const gutil = require('gulp-util');
+const path = require('path');
+const slash = require('slash');
 
-var PluginError = gutil.PluginError;
+const PluginError = gutil.PluginError;
 
-var PLUGIN_NAME = 'gulp-filenames-to-txt';
+const PLUGIN_NAME = 'gulp-filenames-to-txt';
 
-function gulpFilenamesToTxt(options) {
-    if (typeof options === 'undefined') {
-        options = {};
-    }
-
+const gulpFilenamesToTxt = (options = {}) => {
     if (typeof options.fileName === 'undefined') {
         options.fileName = 'file.txt';
     }
@@ -23,20 +19,27 @@ function gulpFilenamesToTxt(options) {
             this.files = [];
         }
 
-        this.files.push(slash(path.relative(file.cwd, file.path)));
+        let fileName = slash(path.relative(file.cwd, file.path));
+
+        if (typeof options.base !== 'undefined') {
+            fileName = fileName.replace(options.base, '');
+        }
+
+        this.files.push(file);
 
         cb();
     }
 
-    function flush(cb) {
-        var file = new gutil.File({
+    function flush (cb) {
+        const file = new gutil.File({
             cwd: '',
             base: '',
             path: path.join(options.fileName),
-            contents: new Buffer(JSON.stringify(this.files))
+            contents: new Buffer(this.files.join('\n'))
         });
 
         this.push(file);
+        
         cb();
     }
 
